@@ -1,0 +1,21 @@
+{
+  "name": "advent-of-code-2023",
+  "author": "Max Davidson <davidsonmax@gmail.com>",
+  "description": "Solutions to Advent of Code 2023",
+  "version": "0.0.0",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": "^20.9.0",
+    "npm": "^10.1.0"
+  },
+  "exports": null,
+  "scripts": {
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "@types/node": "^20.9.0",
+    "prettier": "~3.1.0",
+    "typescript": "~5.2.0"
+  }
+}

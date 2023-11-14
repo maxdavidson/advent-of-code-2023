@@ -1,0 +1,14 @@
+{
+  "typescript.tsdk": "./node_modules/typescript/lib",
+  "typescript.preferences.quoteStyle": "double",
+  "editor.rulers": [80],
+  "editor.formatOnSave": true,
+  "editor.formatOnSaveMode": "file",
+  "editor.codeActionsOnSave": {
+    "source.sortImports": true
+  },
+  "files.readonlyInclude": {
+    "**/node_modules/**/*": true,
+    "package-lock.json": true
+  }
+}
