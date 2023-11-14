@@ -1,0 +1,14 @@
+{
+  "rust-analyzer.check.command": "clippy",
+  "rust-analyzer.check.extraArgs": ["--fix", "--allow-dirty"],
+
+  "[rust]": {
+    "editor.rulers": [80],
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true,
+    "editor.formatOnSave": true,
+    "editor.formatOnSaveMode": "file",
+    "editor.detectIndentation": false,
+    "editor.defaultFormatter": "rust-lang.rust-analyzer"
+  }
+}
