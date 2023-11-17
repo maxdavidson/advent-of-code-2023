@@ -11,11 +11,13 @@
   },
   "exports": null,
   "scripts": {
-    "test": "node --test"
+    "test": "NODE_ENV=test node --test --import=tsimp/import --enable-source-maps --watch $(git ls-files --others --exclude-standard | grep test.ts)",
+    "test:all": "NODE_ENV=test node --test --import=tsimp/import --enable-source-maps $(find src -name '*.test.ts')"
   },
   "devDependencies": {
     "@types/node": "^20.9.0",
     "prettier": "~3.1.0",
-    "typescript": "~5.2.0"
+    "typescript": "~5.3.0",
+    "tsimp": "^2.0.5"
   }
 }
