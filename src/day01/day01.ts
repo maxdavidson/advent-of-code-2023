@@ -14,8 +14,7 @@ export function part1(input: string) {
     .reduce((a, b) => a + b, 0);
 }
 
-const FIRST_DIGIT = /^.*?(\d|one|two|three|four|five|six|seven|eight|nine).*$/;
-const LAST_DIGIT = /^.*(\d|one|two|three|four|five|six|seven|eight|nine).*?$/;
+const DIGIT_PATTERN = /(?=(\d|one|two|three|four|five|six|seven|eight|nine))/g;
 
 const DIGIT_VALUES: Record<string, string> = {
   one: "1",
@@ -35,8 +34,9 @@ export function part2(input: string) {
     .split("\n")
     .map((line) => line.trim())
     .map((line) => {
-      const [, a] = line.match(FIRST_DIGIT)!;
-      const [, b] = line.match(LAST_DIGIT)!;
+      const matches = Array.from(line.matchAll(DIGIT_PATTERN), (m) => m[1]);
+      const a = matches.at(0)!;
+      const b = matches.at(-1)!;
 
       return Number(`${DIGIT_VALUES[a] ?? a}${DIGIT_VALUES[b] ?? b}`);
     })
