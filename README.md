@@ -1,5 +1,5 @@
 # advent-of-code-2023
 
-[![Build Status](https://github.com/maxdavidson/advent-of-code-2023/workflows/CI/badge.svg?workflow=CI+branch=main)](https://github.com/maxdavidson/advent-of-code-2023/actions?query=workflow=CI+branch=main)
+[![CI](https://github.com/maxdavidson/advent-of-code-2023/actions/workflows/ci.yaml/badge.svg?branch=main)](https://github.com/maxdavidson/advent-of-code-2023/actions/workflows/ci.yaml?query=branch%3Amain)
 
 Solutions to [Advent of Code 2023](https://adventofcode.com/2023).
