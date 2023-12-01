@@ -11,8 +11,8 @@
   },
   "exports": null,
   "scripts": {
-    "test": "NODE_ENV=test node --test --import=tsimp/import --enable-source-maps --watch $(git ls-files --others --exclude-standard | grep test.ts)",
-    "test:all": "NODE_ENV=test node --test --import=tsimp/import --enable-source-maps $(find src -name '*.test.ts')"
+    "test": "NODE_ENV=test node --test --import=tsimp/import --enable-source-maps --test-reporter=spec --watch $(git ls-files --others --exclude-standard | grep test.ts)",
+    "test:all": "NODE_ENV=test node --test --import=tsimp/import --enable-source-maps --test-reporter=spec $(find src -name '*.test.ts')"
   },
   "devDependencies": {
     "@types/node": "^20.9.0",
