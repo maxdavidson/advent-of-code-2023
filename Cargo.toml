@@ -9,3 +9,4 @@ license = "MIT"
 doctest = false
 
 [dependencies]
+regex = "^1.10.0"
