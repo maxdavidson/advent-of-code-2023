@@ -5,6 +5,7 @@
     "rootDir": "./src",
     "lib": ["ES2023"],
     "types": ["node"],
+    "noEmit": true,
     "allowJs": true,
     "checkJs": true,
     "strict": true
