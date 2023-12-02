@@ -6,6 +6,8 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
+    env:
+      TSIMP_DIAG: ignore
     steps:
       - name: Check out sources
         uses: actions/checkout@v4
