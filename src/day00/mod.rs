@@ -1,9 +1,9 @@
-pub fn part1(_input: &str) -> u32 {
-  0
+pub fn part1(input: &str) -> usize {
+  input.len()
 }
 
-pub fn part2(_input: &str) -> u32 {
-  0
+pub fn part2(input: &str) -> usize {
+  input.len()
 }
 
 #[cfg(test)]
