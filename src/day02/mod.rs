@@ -1,6 +1,8 @@
-use std::{collections::HashMap, sync::OnceLock};
+use std::{collections::HashMap, iter, sync::OnceLock};
 
 use regex::{Regex, RegexBuilder};
+
+use crate::utils::{LendingIterator, RegexExt};
 
 struct Roll<'a> {
   count: usize,
@@ -35,9 +37,13 @@ fn games(input: &str) -> impl Iterator<Item = Game> {
     })
   };
 
-  game_pattern.captures_iter(input).map(|m| Game {
-    index: m.get(1).unwrap().as_str().parse().unwrap(),
-    subsets: m.get(2).unwrap().as_str(),
+  let mut it = game_pattern.lending_captures_iter(input);
+
+  iter::from_fn(move || {
+    it.next().map(|c| Game {
+      index: c.get(1).unwrap().parse().unwrap(),
+      subsets: c.get(2).unwrap(),
+    })
   })
 }
 
