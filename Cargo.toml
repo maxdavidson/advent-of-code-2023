@@ -9,4 +9,5 @@ license = "MIT"
 doctest = false
 
 [dependencies]
+bit-set = "^0.5.0"
 regex = "^1.10.0"
