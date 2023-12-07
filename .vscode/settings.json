@@ -1,6 +1,6 @@
 {
   "rust-analyzer.check.command": "clippy",
-  "rust-analyzer.check.extraArgs": ["--fix", "--allow-dirty"],
+  // "rust-analyzer.check.extraArgs": ["--fix", "--allow-dirty"],
 
   "[rust]": {
     "editor.rulers": [80],
