@@ -1,77 +1,79 @@
 use std::{
-  array,
   collections::{
     hash_map::{self, DefaultHasher},
-    BTreeMap, HashMap,
+    HashMap,
   },
-  convert::Infallible,
   fmt::Display,
   hash::{Hash, Hasher},
   str::FromStr,
 };
 
-fn bounds<'a, T: Copy + Ord + 'a, const N: usize>(
-  items: impl Iterator<Item = &'a [T; N]>,
-) -> Option<[[T; 2]; N]> {
-  items.fold(None, |ranges, item| {
-    Some(if let Some(ranges) = ranges {
-      array::from_fn(|i| {
-        let [min, max] = ranges[i];
-        [item[i].min(min), item[i].max(max)]
-      })
-    } else {
-      array::from_fn(|i| [item[i], item[i]])
-    })
-  })
-}
-
 #[derive(PartialEq, Eq, Hash)]
-enum Rock {
-  Round,
-  Cube,
+enum Entry {
+  RoundRock,
+  CubeRock,
+  Empty,
 }
 
 #[derive(PartialEq, Eq, Hash)]
 struct ParabolicReflectorDish {
-  map: BTreeMap<[usize; 2], Rock>,
+  rows: usize,
+  entries: Vec<Entry>,
+}
+
+#[derive(Debug)]
+enum ParabolicReflectorDishParseError {
+  InvalidChar(char),
 }
 
 impl FromStr for ParabolicReflectorDish {
-  type Err = Infallible;
+  type Err = ParabolicReflectorDishParseError;
 
   fn from_str(s: &str) -> Result<Self, Self::Err> {
-    let mut map = BTreeMap::new();
+    let mut rows = 0;
+    let mut entries = Vec::new();
 
-    for (y, line) in s.lines().enumerate() {
-      for (x, c) in line.chars().enumerate() {
-        map.insert(
-          [x, y],
-          match c {
-            'O' => Rock::Round,
-            '#' => Rock::Cube,
-            _ => continue,
-          },
-        );
+    for line in s.lines() {
+      rows += 1;
+      for c in line.chars() {
+        entries.push(match c {
+          'O' => Entry::RoundRock,
+          '#' => Entry::CubeRock,
+          '.' => Entry::Empty,
+          c => {
+            return Err(ParabolicReflectorDishParseError::InvalidChar(c));
+          }
+        });
       }
     }
 
-    Ok(Self { map })
+    Ok(Self { rows, entries })
+  }
+}
+
+impl ParabolicReflectorDish {
+  fn bounds(&self) -> [[usize; 2]; 2] {
+    let y_min = 0;
+    let y_max = self.rows - 1;
+    let x_min = 0;
+    let x_max = (self.entries.len() / self.rows) - 1;
+    [[x_min, x_max], [y_min, y_max]]
   }
 }
 
 impl Display for ParabolicReflectorDish {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    let [[x_min, x_max], [y_min, y_max]] = bounds(self.map.keys()).unwrap();
+    let [[x_min, x_max], [y_min, y_max]] = self.bounds();
 
     for y in y_min..=y_max {
       for x in x_min..=x_max {
         write!(
           f,
           "{}",
-          match self.map.get(&[x, y]) {
-            Some(Rock::Cube) => '#',
-            Some(Rock::Round) => 'O',
-            None => '.',
+          match self.entries[y * self.rows + x] {
+            Entry::CubeRock => '#',
+            Entry::RoundRock => 'O',
+            Entry::Empty => '.',
           }
         )?;
       }
@@ -84,16 +86,26 @@ impl Display for ParabolicReflectorDish {
 
 impl ParabolicReflectorDish {
   fn tilt_north(&mut self) {
-    let [[x_min, x_max], [y_min, y_max]] = bounds(self.map.keys()).unwrap();
+    let [[x_min, x_max], [y_min, y_max]] = self.bounds();
 
     for x in x_min..=x_max {
       for y in y_min..=y_max {
-        if self.map.get(&[x, y]).is_none() {
-          if let Some((next_y, &Rock::Round)) =
-            (y..=y_max).find_map(|y| Some((y, self.map.get(&[x, y])?)))
-          {
-            self.map.remove(&[x, next_y]).unwrap();
-            self.map.insert([x, y], Rock::Round);
+        let index = y * self.rows + x;
+        if let Entry::Empty = self.entries[index] {
+          for y_next in y..=y_max {
+            let index_next = y_next * self.rows + x;
+            match self.entries[index_next] {
+              Entry::Empty => {
+                continue;
+              }
+              Entry::CubeRock => {
+                break;
+              }
+              Entry::RoundRock => {
+                self.entries.swap(index, index_next);
+                break;
+              }
+            }
           }
         }
       }
@@ -101,17 +113,26 @@ impl ParabolicReflectorDish {
   }
 
   fn tilt_south(&mut self) {
-    let [[x_min, x_max], [y_min, y_max]] = bounds(self.map.keys()).unwrap();
+    let [[x_min, x_max], [y_min, y_max]] = self.bounds();
 
     for x in x_min..=x_max {
       for y in (y_min..=y_max).rev() {
-        if self.map.get(&[x, y]).is_none() {
-          if let Some((next_y, &Rock::Round)) = (y_min..=y)
-            .rev()
-            .find_map(|y| Some((y, self.map.get(&[x, y])?)))
-          {
-            self.map.remove(&[x, next_y]).unwrap();
-            self.map.insert([x, y], Rock::Round);
+        let index = y * self.rows + x;
+        if let Entry::Empty = self.entries[index] {
+          for y_next in (y_min..=y).rev() {
+            let index_next = y_next * self.rows + x;
+            match self.entries[index_next] {
+              Entry::Empty => {
+                continue;
+              }
+              Entry::CubeRock => {
+                break;
+              }
+              Entry::RoundRock => {
+                self.entries.swap(index, index_next);
+                break;
+              }
+            }
           }
         }
       }
@@ -119,16 +140,26 @@ impl ParabolicReflectorDish {
   }
 
   fn tilt_west(&mut self) {
-    let [[x_min, x_max], [y_min, y_max]] = bounds(self.map.keys()).unwrap();
+    let [[x_min, x_max], [y_min, y_max]] = self.bounds();
 
-    for y in (y_min..=y_max).rev() {
+    for y in y_min..=y_max {
       for x in x_min..=x_max {
-        if self.map.get(&[x, y]).is_none() {
-          if let Some((next_x, &Rock::Round)) =
-            (x..=x_max).find_map(|x| Some((x, self.map.get(&[x, y])?)))
-          {
-            self.map.remove(&[next_x, y]).unwrap();
-            self.map.insert([x, y], Rock::Round);
+        let index = y * self.rows + x;
+        if let Entry::Empty = self.entries[index] {
+          for x_next in x..=x_max {
+            let index_next = y * self.rows + x_next;
+            match self.entries[index_next] {
+              Entry::Empty => {
+                continue;
+              }
+              Entry::CubeRock => {
+                break;
+              }
+              Entry::RoundRock => {
+                self.entries.swap(index, index_next);
+                break;
+              }
+            }
           }
         }
       }
@@ -136,17 +167,26 @@ impl ParabolicReflectorDish {
   }
 
   fn tilt_east(&mut self) {
-    let [[x_min, x_max], [y_min, y_max]] = bounds(self.map.keys()).unwrap();
+    let [[x_min, x_max], [y_min, y_max]] = self.bounds();
 
     for y in y_min..=y_max {
       for x in (x_min..=x_max).rev() {
-        if self.map.get(&[x, y]).is_none() {
-          if let Some((next_x, &Rock::Round)) = (x_min..=x)
-            .rev()
-            .find_map(|x| Some((x, self.map.get(&[x, y])?)))
-          {
-            self.map.remove(&[next_x, y]).unwrap();
-            self.map.insert([x, y], Rock::Round);
+        let index = y * self.rows + x;
+        if let Entry::Empty = self.entries[index] {
+          for x_next in (x_min..=x).rev() {
+            let index_next = y * self.rows + x_next;
+            match self.entries[index_next] {
+              Entry::Empty => {
+                continue;
+              }
+              Entry::CubeRock => {
+                break;
+              }
+              Entry::RoundRock => {
+                self.entries.swap(index, index_next);
+                break;
+              }
+            }
           }
         }
       }
@@ -154,14 +194,15 @@ impl ParabolicReflectorDish {
   }
 
   fn north_beams_load(&self) -> usize {
-    let [_, [_, y_max]] = bounds(self.map.keys()).unwrap();
+    let [_, [_, y_max]] = self.bounds();
 
     self
-      .map
+      .entries
       .iter()
-      .filter_map(|([_, y], rock)| match rock {
-        Rock::Round => Some(y_max - y + 1),
-        Rock::Cube => None,
+      .enumerate()
+      .filter_map(|(index, entry)| match entry {
+        Entry::RoundRock => Some(y_max - index / self.rows + 1),
+        _ => None,
       })
       .sum()
   }
@@ -169,7 +210,9 @@ impl ParabolicReflectorDish {
 
 pub fn part1(input: &str) -> usize {
   let mut dish: ParabolicReflectorDish = input.parse().unwrap();
+
   dish.tilt_north();
+
   dish.north_beams_load()
 }
 
