@@ -1,8 +1,3 @@
-use std::sync::OnceLock;
-
-use itertools::Itertools;
-use regex::{Regex, RegexBuilder};
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 enum Direction {
   Up,
@@ -12,18 +7,9 @@ enum Direction {
 }
 
 fn parse_input(input: &str) -> impl Iterator<Item = (Direction, u8, u32)> + '_ {
-  let pattern = {
-    static PATTERN: OnceLock<Regex> = OnceLock::new();
-    PATTERN.get_or_init(|| {
-      RegexBuilder::new(r"^(U|D|L|R) (\d+) \(#([0-9a-z]+)\)$")
-        .multi_line(true)
-        .build()
-        .unwrap()
-    })
-  };
-
-  pattern.captures_iter(input).map(|c| {
-    let dir = match c.get(1).unwrap().as_str() {
+  input.lines().map(|line| {
+    let mut words = line.split_whitespace();
+    let dir = match words.next().unwrap() {
       "U" => Direction::Up,
       "D" => Direction::Down,
       "L" => Direction::Left,
@@ -31,42 +17,40 @@ fn parse_input(input: &str) -> impl Iterator<Item = (Direction, u8, u32)> + '_ {
       _ => panic!(),
     };
 
-    let len = c.get(2).unwrap().as_str().parse().unwrap();
+    let len = words.next().unwrap().parse().unwrap();
 
-    let color = u32::from_str_radix(c.get(3).unwrap().as_str(), 16).unwrap();
+    let color = u32::from_str_radix(
+      words
+        .next()
+        .unwrap()
+        .trim_start_matches("(#")
+        .trim_end_matches(')'),
+      16,
+    )
+    .unwrap();
 
     (dir, len, color)
   })
 }
 
 fn solve(iter: impl Iterator<Item = (Direction, i64)>) -> i64 {
-  let mut vertices = Vec::new();
+  let mut twice_area = 0;
   let mut circumference = 0;
-
-  vertices.push([0, 0]);
+  let mut pos = [0, 0];
 
   for (dir, len) in iter {
-    let prev_pos = vertices.last().unwrap();
     let next_pos = match dir {
-      Direction::Up => [prev_pos[0], prev_pos[1] - len],
-      Direction::Down => [prev_pos[0], prev_pos[1] + len],
-      Direction::Left => [prev_pos[0] - len, prev_pos[1]],
-      Direction::Right => [prev_pos[0] + len, prev_pos[1]],
+      Direction::Up => [pos[0], pos[1] - len],
+      Direction::Down => [pos[0], pos[1] + len],
+      Direction::Left => [pos[0] - len, pos[1]],
+      Direction::Right => [pos[0] + len, pos[1]],
     };
-    vertices.push(next_pos);
+    twice_area += (pos[0] + next_pos[0]) * (pos[1] - next_pos[1]);
     circumference += len;
+    pos = next_pos;
   }
 
-  assert_eq!(vertices.first(), vertices.last());
-
-  let twice_area = vertices
-    .into_iter()
-    .tuple_windows()
-    .map(|([x0, y0], [x1, y1])| (x0 + x1) * (y0 - y1))
-    .sum::<i64>()
-    .abs();
-
-  twice_area / 2 + (circumference / 2 + 1)
+  twice_area.abs() / 2 + (circumference / 2 + 1)
 }
 
 pub fn part1(input: &str) -> i64 {
@@ -82,7 +66,9 @@ pub fn part2(input: &str) -> i64 {
       3 => Direction::Up,
       _ => panic!(),
     };
+
     let len = color >> 4;
+
     (dir, len as i64)
   }))
 }
